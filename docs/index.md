@@ -46,4 +46,4 @@ It turned out to also be genuinely useful for documentation, onboarding, and PR 
 - [Examples](examples.md)
 - [API Reference](api.md)
 - [Contributing](contributing.md)
-- [Changelog](../CHANGELOG.md)
+- [Changelog](changelog.md)

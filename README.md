@@ -419,7 +419,7 @@ Open stretch goals:
 
 ## License
 
-MIT — see [LICENSE](LICENSE) for details.
+MIT — see [LICENSE](https://github.com/law4percent/tree2guide/blob/main/LICENSE) for details.
 
 ---
 
