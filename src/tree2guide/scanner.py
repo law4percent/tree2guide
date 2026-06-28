@@ -2,6 +2,7 @@
 tree2guide.scanner — walks the filesystem and builds a tree model.
 """
 
+from __future__ import annotations
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
