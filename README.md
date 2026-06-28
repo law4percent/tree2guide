@@ -16,11 +16,11 @@ Open-source, MIT licensed. Contributions, issues, and pull requests are welcome.
 
 ## Why this exists
 
-I'm a solo developer and self-learner. I don't always have time to study every architectural principle before I start building. What I *can* do is look at the shape of my own project.
+Many developers start building before they’ve had time to study every architectural principle in depth. **tree2guide** exists to make project structure easier to see, understand, and improve.
 
-**tree2guide** is the tool I built for that — a quick way to visualize my folder structure, notice when something's drifting into spaghetti, and decide for myself whether I'm actually following good separation of concerns, or just telling myself I am.
+It provides a quick way to visualize folder hierarchies, spot signs of architectural drift, and evaluate whether a codebase is maintaining clear separation of concerns — or simply accumulating complexity over time.
 
-It turned out to be genuinely useful for other things too — documentation, onboarding, PR descriptions, AI prompts — so it grew into a general-purpose tool. But that's not why it exists. It exists to help developers like me catch bad structure early, without needing to be an expert first.
+What began as a tool for checking project structure quickly became useful for documentation, onboarding, PR descriptions, AI prompts, and general project analysis. The goal, however, remains the same: **help developers catch structural problems early, before they become expensive to untangle.**
 
 > tree2guide starts as a project structure generator, but its long-term vision is to become the foundation for project understanding — providing structured representations that can power documentation, analysis, automation, and intelligent developer tools.
 
