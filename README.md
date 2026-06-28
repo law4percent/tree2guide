@@ -1,6 +1,6 @@
 # tree2guide
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/law4percent/tree2guide/blob/main/LICENSE)
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/)
 
 **Understand your project's structure in seconds.**
@@ -128,13 +128,8 @@ It **does not**:
 
 ## Installation
 
-> This package is not yet published to PyPI. Install locally by cloning the repo.
-> `pip install tree2guide` will work once v1.0.0 is released.
-
 ```bash
-git clone https://github.com/law4percent/tree2guide.git
-cd tree2guide/tree2guide_pkg
-pip install -e ".[dev]"
+pip install tree2guide
 ```
 
 Requires Python 3.9+, no other dependencies. Installs a `tree2guide` command directly — no `python` prefix needed.
@@ -408,7 +403,7 @@ Architecture: **Scanner → Tree Model → Renderer**. The scanner builds a `Tre
 ## Contributing
 
 Pull requests, feature ideas, and bug reports are welcome.
-See [CONTRIBUTING](docs/contributing.md) for the full guide, architecture walkthrough, and how to add a new renderer or stack signal.
+See [CONTRIBUTING](https://github.com/law4percent/tree2guide?tab=contributing-ov-file) for the full guide, architecture walkthrough, and how to add a new renderer or stack signal.
 
 Open stretch goals:
 - Browser playground (Pyodide/WASM)

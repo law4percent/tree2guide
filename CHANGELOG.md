@@ -6,7 +6,7 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
-## [1.0.0] — 2025-XX-XX  ← fill in your actual release date
+## [1.0.0] — 2026-06-28
 
 ### Added
 - `.gitignore`-compatible exclusion via hand-written `GitignoreRule` / `ExcludeMatcher` — zero dependencies
