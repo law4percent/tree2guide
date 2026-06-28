@@ -138,7 +138,7 @@ Requires Python 3.9+, no other dependencies. Installs a `tree2guide` command dir
 
 **macOS / Linux**
 ```bash
-cd tree2guide_pkg
+cd tree2guide
 python3 -m venv venv
 source venv/bin/activate
 pip install -e ".[dev]"
@@ -146,7 +146,7 @@ pip install -e ".[dev]"
 
 **Windows**
 ```bat
-cd tree2guide_pkg
+cd tree2guide
 python -m venv venv
 venv\Scripts\activate
 pip install -e ".[dev]"
@@ -335,7 +335,7 @@ print(summary.notable_flags)
 ## Project Structure
 
 ```
-tree2guide_pkg/
+tree2guide/
 ├── .github/
 │   └── workflows/
 │       └── ci.yml
