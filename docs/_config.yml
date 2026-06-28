@@ -27,7 +27,7 @@ nav:
   - title: Contributing
     url: /contributing
   - title: Changelog
-    url: https://github.com/law4percent/tree2guide/blob/main/CHANGELOG.md
+    url: /changelog
 
 markdown: kramdown
 highlighter: rouge
