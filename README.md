@@ -2,6 +2,8 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/law4percent/tree2guide/blob/main/LICENSE)
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/)
+[![CI](https://github.com/law4percent/tree2guide/actions/workflows/ci.yml/badge.svg)](https://github.com/law4percent/tree2guide/actions)
+[![PyPI](https://img.shields.io/pypi/v/tree2guide)](https://pypi.org/project/tree2guide/)
 
 **Understand your project's structure in seconds.**
 
