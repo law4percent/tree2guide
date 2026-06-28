@@ -1,0 +1,35 @@
+# GitHub Pages configuration — Jekyll
+# Deploys the docs/ folder as a static site via GitHub Pages.
+# To enable: repo Settings → Pages → Source → Deploy from branch → main → /docs
+
+title: tree2guide
+description: See your project structure clearly — a tree generator with gitignore-compatible exclusion and multi-format output.
+author: Lawrence Roble
+github_username: law4percent
+
+theme: minima
+
+nav:
+  - title: Home
+    url: /
+  - title: Installation
+    url: /installation
+  - title: Quick Start
+    url: /quickstart
+  - title: .tree2ignore Guide
+    url: /tree2ignore
+  - title: CLI Reference
+    url: /cli
+  - title: Examples
+    url: /examples
+  - title: API Reference
+    url: /api
+  - title: Contributing
+    url: /contributing
+
+markdown: kramdown
+highlighter: rouge
+
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag

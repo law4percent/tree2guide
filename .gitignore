@@ -1,0 +1,9 @@
+tests/__pycache__
+src/tree2guide.egg-info
+src/tree2guide/__pycache__
+src/tree2guide/renderers/__pycache__
+.pytest_cache/
+*.egg-info/
+*_tree.md
+.venv-test
+dist
