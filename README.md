@@ -4,7 +4,7 @@
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/)
 [![CI](https://github.com/law4percent/tree2guide/actions/workflows/ci.yml/badge.svg)](https://github.com/law4percent/tree2guide/actions)
 [![PyPI](https://img.shields.io/pypi/v/tree2guide)](https://pypi.org/project/tree2guide/)
-[![Downloads](https://pepy.tech/badge/tree2guide)](https://pepy.tech/project/tree2guide)
+[![Downloads](https://img.shields.io/pypi/dm/tree2guide)](https://pypistats.org/packages/tree2guide)
 
 **Understand your project's structure in seconds.**
 
