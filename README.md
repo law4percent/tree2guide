@@ -4,6 +4,7 @@
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/)
 [![CI](https://github.com/law4percent/tree2guide/actions/workflows/ci.yml/badge.svg)](https://github.com/law4percent/tree2guide/actions)
 [![PyPI](https://img.shields.io/pypi/v/tree2guide)](https://pypi.org/project/tree2guide/)
+[![Downloads](https://pepy.tech/badge/tree2guide)](https://pepy.tech/project/tree2guide)
 
 **Understand your project's structure in seconds.**
 
@@ -97,6 +98,13 @@ NOTABLE FLAGS:
 
 ---
 
+## Tested Environments
+
+Verified on Windows 11, macOS 26.2, and Ubuntu via CI.
+See [Tested Environments](https://github.com/law4percent/tree2guide/blob/main/docs/tested_environments.md) for full details and known platform-specific issues.
+
+---
+
 ## Philosophy
 
 tree2guide follows a few simple principles:
@@ -115,11 +123,13 @@ tree2guide follows a few simple principles:
 tree2guide operates entirely on your local machine.
 
 It **does**:
+
 - ✅ Read directory structure and filenames
 - ✅ Apply ignore rules
 - ✅ Generate output locally
 
 It **does not**:
+
 - ❌ Read file contents
 - ❌ Upload anything
 - ❌ Require an internet connection
@@ -139,6 +149,7 @@ Requires Python 3.9+, no other dependencies. Installs a `tree2guide` command dir
 ### Development setup (for contributors)
 
 **macOS / Linux**
+
 ```bash
 cd tree2guide
 python3 -m venv venv
@@ -147,6 +158,7 @@ pip install -e ".[dev]"
 ```
 
 **Windows**
+
 ```bat
 cd tree2guide
 python -m venv venv
@@ -391,6 +403,7 @@ Architecture: **Scanner → Tree Model → Renderer**. The scanner builds a `Tre
 → Check for a stray prefix. If you ran `tree2guide docs`, write `api` not `docs/api`.
 
 **I want to exclude everything except one folder**
+
 ```
 *
 !keepme
@@ -408,6 +421,7 @@ Pull requests, feature ideas, and bug reports are welcome.
 See [CONTRIBUTING](https://github.com/law4percent/tree2guide?tab=contributing-ov-file) for the full guide, architecture walkthrough, and how to add a new renderer or stack signal.
 
 Open stretch goals:
+
 - Browser playground (Pyodide/WASM)
 - Interactive HTML viewer from JSON output
 - `--format csv` — flat path list with type column

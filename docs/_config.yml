@@ -28,6 +28,8 @@ nav:
     url: /contributing
   - title: Changelog
     url: /changelog
+  - title: Tested Environment
+    url: /tested_environments
 
 markdown: kramdown
 highlighter: rouge
