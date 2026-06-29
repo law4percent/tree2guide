@@ -7,6 +7,12 @@ no second filesystem pass is needed.
 
 Produces a structured LlmSummary dataclass that the LLM renderer uses to
 build its output.
+
+v1.1.0 changes:
+- Weighted scoring replaces first-match-wins stack detection
+- Expanded framework signals (CakePHP, Laravel, Symfony, Django, Flask,
+  FastAPI, Express, NestJS, Spring Boot, Rails, and more)
+- Primary language now ranks correctly even in polyglot monorepos
 """
 
 from __future__ import annotations
@@ -18,83 +24,291 @@ from tree2guide.scanner import TreeNode
 # Detection tables
 # ---------------------------------------------------------------------------
 
-# Maps a filename/pattern to (language_or_framework, display_label)
-_STACK_SIGNALS: list[tuple[str, str]] = [
-    # Python
-    ("pyproject.toml",        "Python (pyproject.toml)"),
-    ("setup.py",              "Python (setup.py)"),
-    ("requirements.txt",      "Python (requirements.txt)"),
-    ("Pipfile",               "Python (Pipfile)"),
-    ("poetry.lock",           "Python / Poetry"),
-    # JavaScript / TypeScript
-    ("package.json",          "Node.js / JavaScript"),
-    ("tsconfig.json",         "TypeScript"),
-    ("next.config.js",        "Next.js"),
-    ("next.config.ts",        "Next.js (TypeScript)"),
-    ("nuxt.config.ts",        "Nuxt.js"),
-    ("nuxt.config.js",        "Nuxt.js"),
-    ("vite.config.ts",        "Vite"),
-    ("vite.config.js",        "Vite"),
-    ("angular.json",          "Angular"),
-    ("svelte.config.js",      "SvelteKit"),
-    # Go
-    ("go.mod",                "Go"),
-    # Rust
-    ("Cargo.toml",            "Rust / Cargo"),
-    # Ruby
-    ("Gemfile",               "Ruby"),
-    ("Rakefile",              "Ruby / Rake"),
+# Each entry: (pattern, label, weight)
+# Weight reflects how strongly this signal identifies the stack.
+# Higher weight = more specific / more authoritative signal.
+#
+# Scoring rules:
+#   5 = framework-specific config (almost certain identification)
+#   4 = primary language config or lockfile
+#   3 = well-known framework directory or entry point
+#   2 = supporting file (common but not exclusive)
+#   1 = weak signal (present in many stacks)
+#
+# Final detected stack is sorted by total score descending.
+# Labels are deduplicated — highest score wins per label.
+
+_STACK_SIGNALS: list[tuple[str, str, int]] = [
+
+    # -------------------------------------------------------------------------
+    # PHP Frameworks (specific → generic)
+    # -------------------------------------------------------------------------
+    ("bin/cake",              "CakePHP",                  5),
+    ("config/app.php",        "CakePHP",                  5),
+    ("webroot",               "CakePHP",                  3),
+    ("artisan",               "Laravel",                  5),
+    ("bootstrap/app.php",     "Laravel",                  5),
+    ("resources/views",       "Laravel",                  4),
+    ("symfony.lock",          "Symfony",                  5),
+    ("bin/console",           "Symfony",                  5),
+    ("config/bundles.php",    "Symfony",                  5),
+    ("wp-config.php",         "WordPress",                5),
+    ("wp-content",            "WordPress",                4),
+    ("wp-includes",           "WordPress",                4),
+    ("index.php",             "PHP",                      2),
+    ("composer.json",         "PHP / Composer",           4),
+    ("composer.lock",         "PHP / Composer",           3),
+
+    # -------------------------------------------------------------------------
+    # Python Frameworks (specific → generic)
+    # -------------------------------------------------------------------------
+    ("manage.py",             "Django",                   5),
+    ("django",                "Django",                   4),
+    ("settings.py",           "Django",                   3),
+    ("wsgi.py",               "Django / WSGI",            3),
+    ("asgi.py",               "Django / ASGI",            3),
+    ("main.py",               "FastAPI",                  2),
+    ("fastapi",               "FastAPI",                  4),
+    ("app.py",                "Flask",                    2),
+    ("flask",                 "Flask",                    4),
+    ("celery.py",             "Celery",                   4),
+    ("celeryconfig.py",       "Celery",                   4),
+    ("alembic.ini",           "SQLAlchemy / Alembic",     4),
+    ("pyproject.toml",        "Python",                   4),
+    ("setup.py",              "Python",                   3),
+    ("requirements.txt",      "Python",                   2),
+    ("Pipfile",               "Python / Pipenv",          3),
+    ("Pipfile.lock",          "Python / Pipenv",          3),
+    ("poetry.lock",           "Python / Poetry",          4),
+
+    # -------------------------------------------------------------------------
+    # JavaScript / TypeScript Frameworks (specific → generic)
+    # -------------------------------------------------------------------------
+    ("next.config.js",        "Next.js",                  5),
+    ("next.config.ts",        "Next.js (TypeScript)",     5),
+    ("next.config.mjs",       "Next.js",                  5),
+    ("nuxt.config.ts",        "Nuxt.js",                  5),
+    ("nuxt.config.js",        "Nuxt.js",                  5),
+    ("angular.json",          "Angular",                  5),
+    ("svelte.config.js",      "SvelteKit",                5),
+    ("svelte.config.ts",      "SvelteKit",                5),
+    ("remix.config.js",       "Remix",                    5),
+    ("gatsby-config.js",      "Gatsby",                   5),
+    ("gatsby-config.ts",      "Gatsby",                   5),
+    ("nest-cli.json",         "NestJS",                   5),
+    ("vite.config.ts",        "Vite",                     4),
+    ("vite.config.js",        "Vite",                     4),
+    ("astro.config.mjs",      "Astro",                    5),
+    ("astro.config.ts",       "Astro",                    5),
+    ("expo",                  "Expo (React Native)",      4),
+    ("app.json",              "React Native / Expo",      3),
+    ("metro.config.js",       "React Native",             5),
+    ("tsconfig.json",         "TypeScript",               4),
+    ("package.json",          "Node.js / JavaScript",     3),
+    ("package-lock.json",     "Node.js / npm",            2),
+    ("yarn.lock",             "Node.js / Yarn",           3),
+    ("pnpm-lock.yaml",        "Node.js / pnpm",           3),
+
+    # -------------------------------------------------------------------------
+    # Ruby / Rails
+    # -------------------------------------------------------------------------
+    ("Gemfile",               "Ruby",                     3),
+    ("Gemfile.lock",          "Ruby",                     3),
+    ("Rakefile",              "Ruby / Rake",              3),
+    ("config/routes.rb",      "Ruby on Rails",            5),
+    ("app/controllers",       "Ruby on Rails",            5),
+    ("db/schema.rb",          "Ruby on Rails",            5),
+
+    # -------------------------------------------------------------------------
     # Java / Kotlin / JVM
-    ("pom.xml",               "Java / Maven"),
-    ("build.gradle",          "Java / Gradle"),
-    ("build.gradle.kts",      "Kotlin / Gradle"),
+    # -------------------------------------------------------------------------
+    ("pom.xml",               "Java / Maven",             4),
+    ("build.gradle",          "Java / Gradle",            4),
+    ("build.gradle.kts",      "Kotlin / Gradle",          5),
+    ("gradlew",               "Java / Gradle",            3),
+    ("src/main/java",         "Java",                     4),
+    ("src/main/kotlin",       "Kotlin",                   4),
+    ("src/main/resources",    "Java / Spring",            3),
+    ("application.properties","Spring Boot",              5),
+    ("application.yml",       "Spring Boot",              4),
+
+    # -------------------------------------------------------------------------
+    # Go
+    # -------------------------------------------------------------------------
+    ("go.mod",                "Go",                       5),
+    ("go.sum",                "Go",                       4),
+    ("main.go",               "Go",                       3),
+
+    # -------------------------------------------------------------------------
+    # Rust
+    # -------------------------------------------------------------------------
+    ("Cargo.toml",            "Rust / Cargo",             5),
+    ("Cargo.lock",            "Rust / Cargo",             4),
+
+    # -------------------------------------------------------------------------
     # C / C++
-    ("CMakeLists.txt",        "C/C++ / CMake"),
-    ("Makefile",              "C/C++ / Make"),
-    # PHP
-    ("composer.json",         "PHP / Composer"),
-    # Swift / iOS
-    ("Package.swift",         "Swift / SPM"),
+    # -------------------------------------------------------------------------
+    ("CMakeLists.txt",        "C/C++ / CMake",            5),
+    ("Makefile",              "C/C++ / Make",             2),
+    ("configure.ac",          "C/C++ / Autotools",        5),
+    ("conanfile.txt",         "C/C++ / Conan",            5),
+    ("conanfile.py",          "C/C++ / Conan",            5),
+
+    # -------------------------------------------------------------------------
+    # Swift / iOS / macOS
+    # -------------------------------------------------------------------------
+    ("Package.swift",         "Swift / SPM",              5),
+    ("*.xcodeproj",           "Xcode Project",            5),
+    ("*.xcworkspace",         "Xcode Workspace",          5),
+    ("Podfile",               "iOS / CocoaPods",          5),
+
+    # -------------------------------------------------------------------------
     # Dart / Flutter
-    ("pubspec.yaml",          "Dart / Flutter"),
-    # .NET
-    ("*.csproj",              ".NET / C#"),
-    ("*.fsproj",              ".NET / F#"),
-    ("*.sln",                 ".NET Solution"),
-    # Elixir
-    ("mix.exs",               "Elixir / Mix"),
+    # -------------------------------------------------------------------------
+    ("pubspec.yaml",          "Dart / Flutter",           5),
+    ("pubspec.lock",          "Dart / Flutter",           4),
+    ("lib/main.dart",         "Flutter",                  5),
+    ("android/app",           "Flutter (Android)",        4),
+    ("ios/Runner",            "Flutter (iOS)",            4),
+
+    # -------------------------------------------------------------------------
+    # .NET / C# / F#
+    # -------------------------------------------------------------------------
+    ("*.csproj",              ".NET / C#",                5),
+    ("*.fsproj",              ".NET / F#",                5),
+    ("*.sln",                 ".NET Solution",            5),
+    ("appsettings.json",      ".NET / ASP.NET Core",      4),
+    ("Program.cs",            ".NET / C#",                4),
+
+    # -------------------------------------------------------------------------
+    # Elixir / Erlang
+    # -------------------------------------------------------------------------
+    ("mix.exs",               "Elixir / Mix",             5),
+    ("mix.lock",              "Elixir / Mix",             4),
+    ("rebar.config",          "Erlang / Rebar",           5),
+
+    # -------------------------------------------------------------------------
     # Haskell
-    ("stack.yaml",            "Haskell / Stack"),
-    ("*.cabal",               "Haskell / Cabal"),
-    # Docker / infra
-    ("Dockerfile",            "Docker"),
-    ("docker-compose.yml",    "Docker Compose"),
-    ("docker-compose.yaml",   "Docker Compose"),
+    # -------------------------------------------------------------------------
+    ("stack.yaml",            "Haskell / Stack",          5),
+    ("*.cabal",               "Haskell / Cabal",          5),
+
+    # -------------------------------------------------------------------------
+    # Scala
+    # -------------------------------------------------------------------------
+    ("build.sbt",             "Scala / SBT",              5),
+
+    # -------------------------------------------------------------------------
+    # Clojure
+    # -------------------------------------------------------------------------
+    ("project.clj",           "Clojure / Leiningen",      5),
+    ("deps.edn",              "Clojure / deps.edn",       5),
+
+    # -------------------------------------------------------------------------
+    # Docker / Infrastructure
+    # -------------------------------------------------------------------------
+    ("Dockerfile",            "Docker",                   4),
+    ("docker-compose.yml",    "Docker Compose",           4),
+    ("docker-compose.yaml",   "Docker Compose",           4),
+    ("docker-compose.prod.yml","Docker Compose",          4),
+    ("k8s",                   "Kubernetes",               4),
+    ("kubernetes",            "Kubernetes",               4),
+    ("helm",                  "Helm (Kubernetes)",        5),
+    ("Chart.yaml",            "Helm (Kubernetes)",        5),
+    ("terraform",             "Terraform",                4),
+    ("*.tf",                  "Terraform",                4),
+    ("ansible",               "Ansible",                  4),
+    ("playbook.yml",          "Ansible",                  4),
+
+    # -------------------------------------------------------------------------
+    # Mobile
+    # -------------------------------------------------------------------------
+    ("AndroidManifest.xml",   "Android (Native)",         5),
+    ("build.gradle",          "Android / Gradle",         3),
+    ("Info.plist",            "iOS (Native)",             5),
+
+    # -------------------------------------------------------------------------
+    # Database / ORM
+    # -------------------------------------------------------------------------
+    ("prisma",                "Prisma ORM",               5),
+    ("schema.prisma",         "Prisma ORM",               5),
+    ("drizzle.config.ts",     "Drizzle ORM",              5),
+    ("knexfile.js",           "Knex.js",                  5),
+    ("knexfile.ts",           "Knex.js",                  5),
+    ("migrations",            "Database Migrations",      2),
+
+    # -------------------------------------------------------------------------
+    # Testing frameworks (notable but not primary stack)
+    # -------------------------------------------------------------------------
+    ("jest.config.js",        "Jest (Testing)",           3),
+    ("jest.config.ts",        "Jest (Testing)",           3),
+    ("vitest.config.ts",      "Vitest (Testing)",         3),
+    ("vitest.config.js",      "Vitest (Testing)",         3),
+    ("cypress.config.ts",     "Cypress (E2E Testing)",    3),
+    ("cypress.config.js",     "Cypress (E2E Testing)",    3),
+    ("playwright.config.ts",  "Playwright (E2E Testing)", 3),
+    ("playwright.config.js",  "Playwright (E2E Testing)", 3),
+    ("pytest.ini",            "pytest (Testing)",         3),
+    ("conftest.py",           "pytest (Testing)",         3),
+
+    # -------------------------------------------------------------------------
+    # CI / CD
+    # -------------------------------------------------------------------------
+    (".github",               "GitHub Actions",           3),
+    (".gitlab-ci.yml",        "GitLab CI",                4),
+    ("Jenkinsfile",           "Jenkins CI",               4),
+    (".circleci",             "CircleCI",                 4),
+    ("azure-pipelines.yml",   "Azure Pipelines",          4),
+    (".travis.yml",           "Travis CI",                4),
+
+    # -------------------------------------------------------------------------
+    # Monorepo tooling
+    # -------------------------------------------------------------------------
+    ("nx.json",               "Nx (Monorepo)",            5),
+    ("lerna.json",            "Lerna (Monorepo)",         5),
+    ("turbo.json",            "Turborepo (Monorepo)",     5),
+    ("pnpm-workspace.yaml",   "pnpm Workspaces (Monorepo)", 5),
 ]
 
 # Files/dirs whose presence is worth flagging
 _NOTABLE_FLAGS: list[tuple[str, str]] = [
-    (".env.example",          "Environment template (.env.example) present"),
-    (".env",                  "Live .env file present (check it's gitignored!)"),
-    ("tests",                 "Tests directory present"),
-    ("test",                  "Test directory present"),
-    ("__tests__",             "Jest-style __tests__ directory present"),
-    ("spec",                  "Spec directory present"),
-    (".github",               "GitHub Actions / workflows present"),
-    (".gitlab-ci.yml",        "GitLab CI config present"),
-    ("Jenkinsfile",           "Jenkins CI config present"),
-    (".circleci",             "CircleCI config present"),
-    ("azure-pipelines.yml",   "Azure Pipelines config present"),
-    ("LICENSE",               "LICENSE file present"),
-    ("LICENSE.md",            "LICENSE file present"),
-    ("CHANGELOG.md",          "CHANGELOG present"),
-    ("CONTRIBUTING.md",       "CONTRIBUTING guide present"),
-    ("Makefile",              "Makefile present (build/task automation)"),
-    ("docker-compose.yml",    "Docker Compose present"),
-    ("docker-compose.yaml",   "Docker Compose present"),
+    (".env.example",            "Environment template (.env.example) present"),
+    (".env",                    "Live .env file present (check it's gitignored!)"),
+    ("tests",                   "Tests directory present"),
+    ("test",                    "Test directory present"),
+    ("__tests__",               "Jest-style __tests__ directory present"),
+    ("spec",                    "Spec directory present"),
+    ("e2e",                     "End-to-end tests directory present"),
+    (".github",                 "GitHub Actions / workflows present"),
+    (".gitlab-ci.yml",          "GitLab CI config present"),
+    ("Jenkinsfile",             "Jenkins CI config present"),
+    (".circleci",               "CircleCI config present"),
+    ("azure-pipelines.yml",     "Azure Pipelines config present"),
+    ("LICENSE",                 "LICENSE file present"),
+    ("LICENSE.md",              "LICENSE file present"),
+    ("CHANGELOG.md",            "CHANGELOG present"),
+    ("CONTRIBUTING.md",         "CONTRIBUTING guide present"),
+    ("SECURITY.md",             "SECURITY policy present"),
+    ("Makefile",                "Makefile present (build/task automation)"),
+    ("docker-compose.yml",      "Docker Compose present"),
+    ("docker-compose.yaml",     "Docker Compose present"),
     (".pre-commit-config.yaml", "Pre-commit hooks configured"),
-    ("renovate.json",         "Renovate dependency-update bot configured"),
-    (".editorconfig",         "EditorConfig present"),
+    ("renovate.json",           "Renovate dependency-update bot configured"),
+    (".editorconfig",           "EditorConfig present"),
+    (".nvmrc",                  "Node.js version pinned (.nvmrc)"),
+    (".python-version",         "Python version pinned (.python-version)"),
+    ("CODEOWNERS",              "CODEOWNERS file present"),
+    ("CLAUDE.md",               "Claude AI context file present (CLAUDE.md)"),
+    ("AGENTS.md",               "AI agent instructions present (AGENTS.md)"),
+    (".cursorrules",            "Cursor AI rules present"),
+    ("migrations",              "Database migrations directory present"),
+    ("seeds",                   "Database seeds directory present"),
+    ("docs",                    "Documentation directory present"),
+    ("scripts",                 "Scripts directory present"),
+    ("infra",                   "Infrastructure directory present"),
+    ("terraform",               "Terraform infrastructure present"),
+    ("k8s",                     "Kubernetes manifests present"),
+    ("helm",                    "Helm charts present"),
 ]
 
 
@@ -167,6 +381,33 @@ def _matches_pattern(name: str, pattern: str) -> bool:
     return name == pattern
 
 
+def _detect_stack(all_names: set[str]) -> list[str]:
+    """
+    Weighted stack detection.
+
+    Each matching signal contributes its weight to that label's score.
+    Labels are sorted by total score descending, so the most strongly
+    signalled stack appears first — even in polyglot monorepos where
+    a secondary language has more signal files.
+
+    Example: a PHP/CakePHP project with a stray requirements.txt will
+    correctly rank CakePHP first because bin/cake (weight 5) +
+    composer.json (weight 4) outscores requirements.txt (weight 2).
+    """
+    scores: dict[str, int] = {}
+
+    for pattern, label, weight in _STACK_SIGNALS:
+        for name in all_names:
+            if _matches_pattern(name, pattern):
+                # Accumulate score per label
+                scores[label] = scores.get(label, 0) + weight
+                break  # each name matches a pattern at most once per signal
+
+    # Sort by score descending, return labels only
+    ranked = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+    return [label for label, _ in ranked]
+
+
 def analyze(node: TreeNode) -> LlmSummary:
     """
     Inspect a TreeNode tree and return an LlmSummary with detected stack,
@@ -178,14 +419,8 @@ def analyze(node: TreeNode) -> LlmSummary:
     all_files, all_dirs = _collect_all_names(node)
     all_names = all_files | all_dirs
 
-    # Stack detection — first match wins per signal, deduplicate labels
-    seen_labels: set[str] = set()
-    for pattern, label in _STACK_SIGNALS:
-        for name in all_names:
-            if _matches_pattern(name, pattern) and label not in seen_labels:
-                summary.detected_stack.append(label)
-                seen_labels.add(label)
-                break
+    # Weighted stack detection — sorted by score, not insertion order
+    summary.detected_stack = _detect_stack(all_names)
 
     # Notable flags
     seen_flags: set[str] = set()
