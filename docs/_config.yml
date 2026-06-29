@@ -26,10 +26,10 @@ nav:
     url: /api
   - title: Contributing
     url: /contributing
-  - title: Changelog
-    url: /changelog
   - title: Tested Environment
     url: /tested_environments
+  - title: Changelog
+    url: /changelog
 
 markdown: kramdown
 highlighter: rouge

@@ -177,5 +177,5 @@ class LlmSummary:
 ## Version
 
 ```python
-tree2guide.__version__   # "1.0.0"
+tree2guide.__version__   # "1.1.0"
 ```
