@@ -216,8 +216,12 @@ tree2guide <target_folder> [options]
 | `--files-only` | Only show files (directories shown as scaffolding only) |
 | `--no-hidden` | Skip dotfiles/dotfolders without needing `.tree2ignore` entries |
 | `--sort {dirs-first,files-first,alpha}` | Sort order within each folder (default: `dirs-first`) |
+| `--no-progress` | Suppress scan progress and completion telemetry (stderr only) on large directories |
+| `--version` | Print the installed version and exit |
 
 Symlinks are rendered as `name -> target` and never followed — avoids infinite loops.
+
+On large directories, tree2guide prints periodic progress (`Scanning... N files, N dirs`) and a final `Scan complete.` summary to **stderr** — never stdout — so piping (`--stdout | your-tool`) is unaffected. Fast scans print nothing extra. Use `--no-progress` to suppress this entirely.
 
 ### Default output filenames
 
@@ -328,7 +332,7 @@ print(summary.notable_flags)
 
 | Name | Description |
 |---|---|
-| `build_node_tree(root, matcher, options=None)` | Scan filesystem → `TreeNode` |
+| `build_node_tree(root, matcher, options=None, on_progress=None)` | Scan filesystem → `TreeNode`. `on_progress(files, dirs)`, if given, is called at most once per second during the walk — pure instrumentation, `None` by default with zero effect |
 | `build_tree(root, matcher, options=None)` | Backward-compatible wrapper → `list[str]` |
 | `TreeNode` | Internal tree model (dataclass) |
 | `TreeOptions` | Scanner options (max_depth, dirs_only, sort, etc.) |

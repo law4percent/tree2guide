@@ -45,3 +45,42 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 ### Fixed
 - PHP/CakePHP projects no longer misidentified as Python when a
   stray requirements.txt exists deep in the codebase
+
+---
+
+## [1.2.0] — 2026-07-01
+
+### Added
+- `--version` flag — `tree2guide --version` now prints the version instead
+  of crashing with a missing-argument error
+- AI tooling notable flags — detects `.claude/`, `.cursor/`, `.windsurf/`,
+  `.roo/`, `.specify/`, `.roomodes`, `.maestro/`, `.githooks/` in addition
+  to the previously-existing `CLAUDE.md`, `AGENTS.md`, `.cursorrules`
+- Generic `PHP MVC structure` stack signal — `Controller/`, `Model/`,
+  `View/` are recognized as a weak, generic MVC-framework signal without
+  being misattributed to CakePHP specifically, since these directory names
+  are shared by CodeIgniter, Yii, and other PHP MVC frameworks
+- Scan progress and completion telemetry for large directories — periodic
+  `Scanning... N files, N dirs` and a final `Scan complete.` summary,
+  printed to stderr only (never stdout, so `--stdout` piping is
+  unaffected). Gated on elapsed wall-clock time, not entry count, so fast
+  scans of small projects print nothing extra. `--no-progress` suppresses
+  this entirely. `build_node_tree()` gained an optional `on_progress`
+  callback parameter (`None` by default, zero effect on existing callers)
+- Number formatting — file and directory counts in `--llm` output now use
+  comma separators for readability on large projects (`227886` → `227,886`)
+
+### Fixed
+- `_STACK_SIGNALS` patterns containing a path separator (e.g. `bin/cake`,
+  `config/app.php`, `bootstrap/app.php`, `bin/console`, `config/routes.rb`,
+  `src/main/java`, and 9 others) could never match anything, because stack
+  detection only ever compared against bare file/directory names, never
+  relative paths. These are now matched against each entry's actual
+  relative path, restoring the CakePHP, Laravel, Symfony, Ruby on Rails,
+  Java/Kotlin, and Flutter signals that depend on them — several of which
+  are the highest-confidence (weight 5) signal for their framework
+- `cli.py` used `str | None` / `list[str] | None` type-hint syntax without
+  `from __future__ import annotations`, which would raise `TypeError` on
+  Python 3.9 the moment the module was imported. No test previously
+  imported `tree2guide.cli`, so this went undetected by CI despite the 3.9
+  job reporting green; new CLI tests now cover this module directly

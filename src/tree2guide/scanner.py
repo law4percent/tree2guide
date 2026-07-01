@@ -4,8 +4,10 @@ tree2guide.scanner — walks the filesystem and builds a tree model.
 
 from __future__ import annotations
 import os
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Callable
 
 from tree2guide.ignore import ExcludeMatcher
 
@@ -41,6 +43,7 @@ def build_node_tree(
     root: Path,
     matcher: ExcludeMatcher,
     options: TreeOptions | None = None,
+    on_progress: Callable[[int, int], None] | None = None,
 ) -> TreeNode:
     """
     Build and return a TreeNode tree rooted at `root`.
@@ -48,9 +51,26 @@ def build_node_tree(
     This is the canonical Scanner output — a single O(n) pass that
     every renderer consumes. build_tree() is kept for backward compat
     and simply calls render_lines() on the result.
+
+    `on_progress`, if given, is called with (files_visited, dirs_visited)
+    no more than once per second of wall-clock time during the walk.
+    It is pure instrumentation: the scanner does not know or care who's
+    listening, and passing None (the default) has zero effect on the
+    returned tree or on any existing caller.
     """
     options = options or TreeOptions()
     sort_key = _sort_key(options.sort)
+    counts = {"files": 0, "dirs": 0}
+    last_tick = time.monotonic()
+
+    def maybe_report() -> None:
+        nonlocal last_tick
+        if on_progress is None:
+            return
+        now = time.monotonic()
+        if now - last_tick >= 1.0:
+            on_progress(counts["files"], counts["dirs"])
+            last_tick = now
 
     def rel_str(path: Path) -> str:
         return path.relative_to(root).as_posix()
@@ -102,6 +122,12 @@ def build_node_tree(
                 children=child_nodes,
             )
             children.append(node)
+
+            if node.is_dir:
+                counts["dirs"] += 1
+            else:
+                counts["files"] += 1
+            maybe_report()
 
         return children
 

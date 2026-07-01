@@ -44,8 +44,8 @@ def render_llm(tree: TreeNode, title: str | None = None) -> str:
 
     # ------------------------------------------------------------------ counts
     lines.append("SIZE:")
-    lines.append(f"  Files      : {summary.file_count}")
-    lines.append(f"  Directories: {summary.dir_count}")
+    lines.append(f"  Files      : {summary.file_count:,}")
+    lines.append(f"  Directories: {summary.dir_count:,}")
     lines.append("")
 
     # --------------------------------------------------------- top-level layout

@@ -10,7 +10,7 @@ import tree2guide
 
 ## Scanner
 
-### `build_node_tree(root, matcher, options=None) -> TreeNode`
+### `build_node_tree(root, matcher, options=None, on_progress=None) -> TreeNode`
 
 The primary scanner function. Walks the filesystem once and returns a `TreeNode` tree. All renderers consume this.
 
@@ -24,6 +24,19 @@ matcher = tree2guide.ExcludeMatcher(patterns)
 options = tree2guide.TreeOptions(max_depth=3, no_hidden=True)
 
 node = tree2guide.build_node_tree(root, matcher, options)
+```
+
+`on_progress`, if given, is a `Callable[[int, int], None]` called with
+`(files_visited, dirs_visited)` at most once per second of wall-clock time
+during the walk. It is pure instrumentation — the scanner does not know or
+care who's listening — and `None` (the default) has zero effect on the
+returned tree or on any existing caller:
+
+```python
+def report(files: int, dirs: int) -> None:
+    print(f"...{files} files, {dirs} dirs so far", file=sys.stderr)
+
+node = tree2guide.build_node_tree(root, matcher, options, on_progress=report)
 ```
 
 ### `build_tree(root, matcher, options=None) -> list[str]`
@@ -177,5 +190,5 @@ class LlmSummary:
 ## Version
 
 ```python
-tree2guide.__version__   # "1.1.0"
+tree2guide.__version__   # "1.2.0"
 ```

@@ -1,7 +1,9 @@
 """Tests for tree2guide.scanner (build_tree, build_node_tree, TreeOptions)."""
 
 import tempfile
+import time
 from pathlib import Path
+from unittest.mock import patch
 
 from tree2guide.ignore import ExcludeMatcher
 from tree2guide.scanner import TreeOptions, build_node_tree, build_tree
@@ -129,3 +131,65 @@ class TestBuildNodeTree:
             node = build_node_tree(root, matcher)
             file_node = node.children[0]
             assert file_node.is_dir is False
+
+
+class TestBuildNodeTreeProgress:
+    """on_progress is pure instrumentation: default None must leave every
+    existing caller (including build_tree()) completely unaffected."""
+
+    def test_default_none_has_no_effect(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "proj"
+            _make_tree({"a.txt": None, "b.txt": None}, root)
+            matcher = ExcludeMatcher([])
+            node = build_node_tree(root, matcher)  # no on_progress arg at all
+            assert {c.name for c in node.children} == {"a.txt", "b.txt"}
+
+    def test_on_progress_not_called_on_a_fast_scan(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "proj"
+            _make_tree({"a.txt": None}, root)
+            matcher = ExcludeMatcher([])
+            calls = []
+            build_node_tree(root, matcher, TreeOptions(), on_progress=lambda f, d: calls.append((f, d)))
+            assert calls == []
+
+    def test_on_progress_fires_and_reports_correct_running_totals(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "proj"
+            _make_tree({"a.txt": None, "b.txt": None, "sub": {"c.txt": None}}, root)
+            matcher = ExcludeMatcher([])
+            calls = []
+
+            fake_clock = [0.0]
+
+            def fake_monotonic():
+                fake_clock[0] += 1.5  # always exceeds the 1s gate
+                return fake_clock[0]
+
+            with patch("tree2guide.scanner.time.monotonic", side_effect=fake_monotonic):
+                build_node_tree(
+                    root, matcher, TreeOptions(),
+                    on_progress=lambda f, d: calls.append((f, d)),
+                )
+
+            assert len(calls) > 0
+            assert calls[-1] == (3, 1)  # 3 files (a, b, c), 1 dir (sub) — final totals
+
+    def test_no_progress_equivalent_is_on_progress_none(self):
+        """Mirrors the CLI's --no-progress: passing None wires no callback
+        at all, regardless of how slow the walk is."""
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "proj"
+            _make_tree({"a.txt": None}, root)
+            matcher = ExcludeMatcher([])
+
+            fake_clock = [0.0]
+
+            def fake_monotonic():
+                fake_clock[0] += 1.5
+                return fake_clock[0]
+
+            with patch("tree2guide.scanner.time.monotonic", side_effect=fake_monotonic):
+                node = build_node_tree(root, matcher, TreeOptions(), on_progress=None)
+            assert node is not None
