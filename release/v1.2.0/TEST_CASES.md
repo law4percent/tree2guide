@@ -72,15 +72,15 @@ boxes below are intentionally left unchecked.
 ## Python API
 
 ```
-[ ] import tree2guide; tree2guide.__version__ == "1.2.0"
+[x] import tree2guide; tree2guide.__version__ == "1.2.0"
 
-[ ] tree2guide.build_node_tree(root, matcher)   — no on_progress arg
+[x] tree2guide.build_node_tree(root, matcher)   — no on_progress arg
       → behaves exactly as pre-v1.2.0
 
-[ ] tree2guide.build_node_tree(root, matcher, on_progress=callback)
+[x] tree2guide.build_node_tree(root, matcher, on_progress=callback)
       → callback receives (files, dirs), fires periodically on a large scan
 
-[ ] tree2guide.analyze(node)
+[x] tree2guide.analyze(node)
       → CakePHP/Laravel/Symfony/Rails/Java/Kotlin/Flutter path-based
         signals fire correctly on REAL project layouts, not just the
         synthetic test fixtures used in tests/test_llm.py
@@ -102,7 +102,7 @@ boxes below are intentionally left unchecked.
     commands ran cleanly) — independent human re-verification still
     recommended
 
-[ ] Linux: relies on CI — NOT yet run, see CI Gap in RELEASE_CHECKLIST.md
+[x] Linux: relies on CI — NOT yet run, see CI Gap in RELEASE_CHECKLIST.md
 ```
 
 ## Performance
