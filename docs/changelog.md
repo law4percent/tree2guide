@@ -48,7 +48,7 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
-## [1.2.0] — 2026-07-01
+## [1.2.0] — 2026-07-02
 
 ### Added
 - `--version` flag — `tree2guide --version` now prints the version instead
