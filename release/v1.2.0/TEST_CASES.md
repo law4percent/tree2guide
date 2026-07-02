@@ -11,61 +11,61 @@ boxes below are intentionally left unchecked.
 ## CLI — new in v1.2.0
 
 ```
-[ ] tree2guide --version
+[x] tree2guide --version
       → prints "tree2guide 1.2.0" and exits 0
 
-[ ] tree2guide . --no-progress   (on a large directory)
+[x] tree2guide . --no-progress   (on a large directory)
       → suppresses all stderr output (no progress lines, no summary)
 
-[ ] tree2guide . --llm   (on a directory with 1000+ files)
+[x] tree2guide . --llm   (on a directory with 1000+ files)
       → SIZE section shows comma-formatted counts (e.g. "1,234", not "1234")
 
-[ ] tree2guide . --llm   (on a project containing .claude/, .cursor/, etc.)
+[x] tree2guide . --llm   (on a project containing .claude/, .cursor/, etc.)
       → NOTABLE FLAGS lists the new AI-tooling entries, no duplicates
 
-[ ] tree2guide .   (on a project with only Controller/, Model/, View/ —
+[x] tree2guide .   (on a project with only Controller/, Model/, View/ —
     no bin/cake, no config/app.php)
       → detected stack shows "PHP MVC structure", NOT "CakePHP"
 
-[ ] tree2guide .   (on a real CakePHP project with bin/cake present)
+[x] tree2guide .   (on a real CakePHP project with bin/cake present)
       → detected stack shows "CakePHP"
 ```
 
 ## CLI — regression (existing behavior, must be unaffected)
 
 ```
-[ ] tree2guide . --stdout
+[x] tree2guide . --stdout
       → output unaffected by scan progress; stdout stays clean even when
         progress fires on stderr
 
-[ ] tree2guide . --format {markdown,text,json,yaml,html}
+[x] tree2guide . --format {markdown,text,json,yaml,html}
       → all five still work as before
 
-[ ] --dirs-only / --files-only
+[x] --dirs-only / --files-only
       → mutual exclusivity still enforced
 
-[ ] --exclude-file / .tree2ignore
+[x] --exclude-file / .tree2ignore
       → pattern handling unchanged
 
-[ ] Symlinks
+[x] Symlinks
       → still rendered as "name -> target", never followed
 ```
 
 ## Scan awareness (needs a real large tree — e.g. node_modules, a big monorepo)
 
 ```
-[ ] Progress lines ("Scanning... N files, N dirs") appear on a scan
+[x] Progress lines ("Scanning... N files, N dirs") appear on a scan
     taking more than ~1 second
 
-[ ] Final line ("Scan complete. Files: N, Directories: N, Elapsed: X.Xs")
+[x] Final line ("Scan complete. Files: N, Directories: N, Elapsed: X.Xs")
     appears once, after the scan finishes
 
-[ ] A fast scan of a small project prints no progress/telemetry at all
+[x] A fast scan of a small project prints no progress/telemetry at all
 
-[ ] tree2guide . --stdout 2>/dev/null
+[x] tree2guide . --stdout 2>/dev/null
       → stdout output is clean tree/summary content only
 
-[ ] tree2guide . --stdout 1>/dev/null
+[x] tree2guide . --stdout 1>/dev/null
       → progress/telemetry still visible on stderr
 ```
 
@@ -98,7 +98,7 @@ boxes below are intentionally left unchecked.
       (plain print(), no \r tricks — should be safe by design, not yet
       human-verified on real Windows)
 
-[ ] macOS: verified during evidence generation (fresh venv install, all
+[x] macOS: verified during evidence generation (fresh venv install, all
     commands ran cleanly) — independent human re-verification still
     recommended
 
@@ -108,7 +108,7 @@ boxes below are intentionally left unchecked.
 ## Performance
 
 ```
-[ ] Scan a 100k+ file directory
+[x] Scan a 100k+ file directory
       → progress appears, final summary counts match reality, no crash,
         elapsed time is reasonable
 ```
@@ -116,7 +116,7 @@ boxes below are intentionally left unchecked.
 ## Packaging
 
 ```
-[ ] Fresh venv install from the built wheel
+[x] Fresh venv install from the built wheel
       (already done once during evidence generation — human should
       independently re-verify)
 
@@ -128,5 +128,5 @@ boxes below are intentionally left unchecked.
 ---
 
 Result:  PASS / FAIL / NOT TESTED
-Tester:
-Date:
+Tester: Lawrence Roble
+Date: July 2, 2026

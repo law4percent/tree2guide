@@ -84,3 +84,10 @@ Versioning follows [Semantic Versioning](https://semver.org/).
   Python 3.9 the moment the module was imported. No test previously
   imported `tree2guide.cli`, so this went undetected by CI despite the 3.9
   job reporting green; new CLI tests now cover this module directly
+- Scan progress counts (added in this release) included symlinks, while
+  the final completion summary and `--llm`'s SIZE section both excluded
+  them — the same long-standing convention used since v1.0.0. On a
+  project with many symlinks (e.g. Python venvs, `node_modules/.bin`),
+  the live progress numbers could run noticeably ahead of the final
+  count. Progress now excludes symlinks, matching every other counting
+  function in the codebase

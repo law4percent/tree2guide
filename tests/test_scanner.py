@@ -176,6 +176,39 @@ class TestBuildNodeTreeProgress:
             assert len(calls) > 0
             assert calls[-1] == (3, 1)  # 3 files (a, b, c), 1 dir (sub) — final totals
 
+    def test_on_progress_excludes_symlinks_matching_final_count_convention(self):
+        """Found via real-world testing against a repo with thousands of
+        symlinks (venv/node_modules .bin links): progress must count
+        entries the same way _count_tree()/_count_entries() do elsewhere
+        in the codebase, or the live number and the final summary
+        disagree. A symlinked file and a symlinked dir must both be
+        excluded from the running totals, exactly like they're excluded
+        from is_symlink-checked counts everywhere else."""
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "proj"
+            _make_tree({"a.txt": None, "real_dir": {"b.txt": None}}, root)
+            (root / "link_to_file").symlink_to(root / "a.txt")
+            (root / "link_to_dir").symlink_to(root / "real_dir")
+            matcher = ExcludeMatcher([])
+            calls = []
+
+            fake_clock = [0.0]
+
+            def fake_monotonic():
+                fake_clock[0] += 1.5
+                return fake_clock[0]
+
+            with patch("tree2guide.scanner.time.monotonic", side_effect=fake_monotonic):
+                build_node_tree(
+                    root, matcher, TreeOptions(),
+                    on_progress=lambda f, d: calls.append((f, d)),
+                )
+
+            assert len(calls) > 0
+            # 2 real files (a.txt, real_dir/b.txt), 1 real dir (real_dir) —
+            # the 2 symlinks must not inflate either count.
+            assert calls[-1] == (2, 1)
+
     def test_no_progress_equivalent_is_on_progress_none(self):
         """Mirrors the CLI's --no-progress: passing None wires no callback
         at all, regardless of how slow the walk is."""

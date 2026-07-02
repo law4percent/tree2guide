@@ -123,10 +123,11 @@ def build_node_tree(
             )
             children.append(node)
 
-            if node.is_dir:
-                counts["dirs"] += 1
-            else:
-                counts["files"] += 1
+            if not node.is_symlink:
+                if node.is_dir:
+                    counts["dirs"] += 1
+                else:
+                    counts["files"] += 1
             maybe_report()
 
         return children

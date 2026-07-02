@@ -13,7 +13,7 @@ Base commit: `076c21e` "IN DEV: v.1.2.0" (pushed to `origin/v1.2.0`)
 
 | Item | Status | Notes |
 |---|---|---|
-| All tests pass locally (pytest) | ✅ Confirmed | 99 passed, 2026-07-02 |
+| All tests pass locally (pytest) | ✅ Confirmed | 100 passed, 2026-07-02 (99 at initial evidence generation, +1 symlink-counting regression test found via real-world testing) |
 | No uncommitted changes (git status) | ✅ Confirmed | clean except untracked `.ignored/` (not part of the package) |
 | Version number correct in pyproject.toml | ✅ Confirmed | `1.2.0` |
 | `__version__` in `__init__.py` matches | ✅ Confirmed | `1.2.0` |
@@ -71,8 +71,8 @@ resolved unilaterally — pending your decision.
 | Item | Status |
 |---|---|
 | Upgrade build/twine | ✅ Confirmed already current — build 1.5.0, twine 6.2.0 |
-| `python -m build` | ✅ Confirmed — built `tree2guide-1.2.0.tar.gz` and `tree2guide-1.2.0-py3-none-any.whl` |
-| `python -m twine check dist/*` | ✅ Confirmed — both **PASSED** |
+| `python -m build` | ✅ Confirmed — built `tree2guide-1.2.0.tar.gz` and `tree2guide-1.2.0-py3-none-any.whl`; rebuilt once more after the symlink-counting fix (see `PRODUCTION_NOTES.md`) to ensure `dist/` reflects the fix |
+| `python -m twine check dist/*` | ✅ Confirmed — both **PASSED** (re-verified after rebuild) |
 | Wheel contents inspected | ✅ Confirmed — all source files, LICENSE, `entry_points.txt`, METADATA (16KB) present |
 | Sdist contents inspected | ✅ Confirmed — LICENSE, README.md, pyproject.toml, `src/`, `tests/` (incl. new `test_cli.py`) present |
 
@@ -120,3 +120,4 @@ boundary.
 
 Prepared by: Claude (evidence generation only)
 Date: 2026-07-02
+Reviewed by: Lawrence Roble
