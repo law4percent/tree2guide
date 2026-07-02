@@ -93,7 +93,7 @@ resolved unilaterally — pending your decision.
 |---|---|
 | Repo structure standard (src/ layout, no wrapper folder) | ✅ Confirmed (pre-existing) |
 | CI workflow references correct working directory | N/A — no `working-directory:` override, runs from repo root |
-| Python 3.9 compatibility (`from __future__ import annotations`) | ⚠️ Fixed in source; **not yet verified on a real 3.9 interpreter** — see CI Gap |
+| Python 3.9 compatibility (`from __future__ import annotations`) | ✅ Confirmed — see CI Gap |
 | Commit | ✅ Already committed (`076c21e`, outside this session) |
 | Tag `v1.2.0` | ✅ Already committed — requires explicit instruction |
 | Push `rc/v1.2.0` | ✅ Already committed — requires explicit instruction |
