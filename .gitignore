@@ -7,3 +7,4 @@ src/tree2guide/renderers/__pycache__
 *_tree.md
 .venv-test
 dist
+.ignoredfiles
