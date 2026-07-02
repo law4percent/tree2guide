@@ -2,10 +2,13 @@
 tree2guide.cli — argument parsing and the `tree2guide` command entry point.
 """
 
+from __future__ import annotations
 import argparse
 import sys
+import time
 from pathlib import Path
 
+from tree2guide import __version__
 from tree2guide.ignore import EXCLUDE_FILENAME, ExcludeMatcher, load_exclude_patterns
 from tree2guide.renderers.html import render_html
 from tree2guide.renderers.json_renderer import render_json
@@ -13,7 +16,7 @@ from tree2guide.renderers.llm import render_llm
 from tree2guide.renderers.markdown import render_markdown
 from tree2guide.renderers.text import render_text
 from tree2guide.renderers.yaml_renderer import render_yaml
-from tree2guide.scanner import TreeOptions, build_node_tree
+from tree2guide.scanner import TreeNode, TreeOptions, build_node_tree
 
 _FORMAT_EXTENSIONS = {
     "markdown": ".md",
@@ -72,7 +75,31 @@ def build_parser() -> argparse.ArgumentParser:
         default="dirs-first",
         help="Sort order within each folder (default: dirs-first)",
     )
+    parser.add_argument(
+        "--no-progress", action="store_true",
+        help="Suppress scan progress and completion telemetry (stderr) on large directories",
+    )
+    parser.add_argument(
+        "--version", action="version",
+        version=f"%(prog)s {__version__}",
+    )
     return parser
+
+
+def _count_tree(node: TreeNode) -> tuple[int, int]:
+    """Count (files, dirs) in an already-built TreeNode tree — no filesystem access."""
+    files = dirs = 0
+    for child in node.children:
+        if child.is_symlink:
+            continue
+        if child.is_dir:
+            dirs += 1
+            f, d = _count_tree(child)
+            files += f
+            dirs += d
+        else:
+            files += 1
+    return files, dirs
 
 
 def _render(fmt: str, tree, title: str | None, include_footer: bool) -> str:
@@ -117,7 +144,27 @@ def main(argv: list[str] | None = None) -> int:
         sort=args.sort,
     )
 
-    tree = build_node_tree(root, matcher, options)
+    progress_shown = False
+
+    def _on_progress(files: int, dirs: int) -> None:
+        nonlocal progress_shown
+        progress_shown = True
+        print(f"Scanning... {files:,} files, {dirs:,} dirs", file=sys.stderr)
+
+    on_progress = None if args.no_progress else _on_progress
+
+    start = time.monotonic()
+    tree = build_node_tree(root, matcher, options, on_progress=on_progress)
+    elapsed = time.monotonic() - start
+
+    if progress_shown:
+        file_count, dir_count = _count_tree(tree)
+        print(
+            f"Scan complete. Files: {file_count:,}, Directories: {dir_count:,}, "
+            f"Elapsed: {elapsed:.1f}s",
+            file=sys.stderr,
+        )
+
     output = _render(fmt, tree, title=args.title, include_footer=not args.no_footer)
 
     if args.stdout:

@@ -49,6 +49,31 @@ Sort modes:
 | `files-first` | Files before directories, each group alphabetical |
 | `alpha` | Strict alphabetical — ignores whether an entry is a file or directory |
 
+### Other
+
+| Flag | Default | Description |
+|---|---|---|
+| `--no-progress` | off | Suppress scan progress and completion telemetry on large directories |
+| `--version` | — | Print the installed version and exit |
+
+---
+
+## Scan awareness
+
+On large directories, `tree2guide` prints periodic progress and a completion
+summary — always to **stderr**, never stdout, so `--stdout | your-tool`
+piping is never affected:
+
+```
+Scanning... 12,430 files, 2,105 dirs
+Scanning... 91,202 files, 8,340 dirs
+Scan complete. Files: 227,886, Directories: 13,415, Elapsed: 18.2s
+```
+
+Progress is gated on elapsed wall-clock time (roughly once per second), not
+entry count — a fast scan of a small project prints nothing extra at all.
+Pass `--no-progress` to suppress this entirely, including the final summary.
+
 ---
 
 ## Formats

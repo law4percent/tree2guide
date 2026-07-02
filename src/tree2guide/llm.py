@@ -58,6 +58,9 @@ _STACK_SIGNALS: list[tuple[str, str, int]] = [
     ("index.php",             "PHP",                      2),
     ("composer.json",         "PHP / Composer",           4),
     ("composer.lock",         "PHP / Composer",           3),
+    ("Controller",            "PHP MVC structure",        1),
+    ("Model",                 "PHP MVC structure",        1),
+    ("View",                  "PHP MVC structure",        1),
 
     # -------------------------------------------------------------------------
     # Python Frameworks (specific → generic)
@@ -301,6 +304,14 @@ _NOTABLE_FLAGS: list[tuple[str, str]] = [
     ("CLAUDE.md",               "Claude AI context file present (CLAUDE.md)"),
     ("AGENTS.md",               "AI agent instructions present (AGENTS.md)"),
     (".cursorrules",            "Cursor AI rules present"),
+    (".claude",                 "Claude AI context present (.claude/)"),
+    (".cursor",                 "Cursor IDE rules/agents present (.cursor/)"),
+    (".windsurf",               "Windsurf IDE rules present (.windsurf/)"),
+    (".roo",                    "Roo AI rules present (.roo/)"),
+    (".specify",                "Spec Kit metadata directory"),
+    (".roomodes",               "Roo AI modes config present (.roomodes)"),
+    (".maestro",                "Maestro mobile E2E testing present"),
+    (".githooks",               "Custom Git hooks present (.githooks/)"),
     ("migrations",              "Database migrations directory present"),
     ("seeds",                   "Database seeds directory present"),
     ("docs",                    "Documentation directory present"),
@@ -354,6 +365,27 @@ def _collect_all_names(node: TreeNode) -> tuple[set[str], set[str]]:
     return files, dirs
 
 
+def _collect_all_paths(node: TreeNode) -> set[str]:
+    """
+    Walk the entire TreeNode tree and collect every entry's path relative
+    to `node`, posix-style ("bin/cake"). Used only for `_STACK_SIGNALS`
+    patterns that contain '/' — bare-name patterns never need this.
+    """
+    paths: set[str] = set()
+
+    def _walk(n: TreeNode, prefix: str) -> None:
+        for child in n.children:
+            if child.is_symlink:
+                continue
+            rel = f"{prefix}{child.name}"
+            paths.add(rel)
+            if child.is_dir:
+                _walk(child, rel + "/")
+
+    _walk(node, "")
+    return paths
+
+
 def _count_entries(node: TreeNode) -> tuple[int, int]:
     """Return (total_files, total_dirs) recursively."""
     files = dirs = 0
@@ -381,7 +413,7 @@ def _matches_pattern(name: str, pattern: str) -> bool:
     return name == pattern
 
 
-def _detect_stack(all_names: set[str]) -> list[str]:
+def _detect_stack(all_names: set[str], all_paths: set[str]) -> list[str]:
     """
     Weighted stack detection.
 
@@ -393,15 +425,24 @@ def _detect_stack(all_names: set[str]) -> list[str]:
     Example: a PHP/CakePHP project with a stray requirements.txt will
     correctly rank CakePHP first because bin/cake (weight 5) +
     composer.json (weight 4) outscores requirements.txt (weight 2).
+
+    Patterns containing '/' (e.g. "bin/cake") are matched against full
+    relative paths — exact match at the root, or as a path suffix at
+    any depth (consistent with how bare-name patterns match anywhere
+    in the tree). Patterns without '/' match bare names only, unchanged.
     """
     scores: dict[str, int] = {}
 
     for pattern, label, weight in _STACK_SIGNALS:
-        for name in all_names:
-            if _matches_pattern(name, pattern):
-                # Accumulate score per label
-                scores[label] = scores.get(label, 0) + weight
-                break  # each name matches a pattern at most once per signal
+        if "/" in pattern:
+            matched = any(
+                path == pattern or path.endswith("/" + pattern)
+                for path in all_paths
+            )
+        else:
+            matched = any(_matches_pattern(name, pattern) for name in all_names)
+        if matched:
+            scores[label] = scores.get(label, 0) + weight
 
     # Sort by score descending, return labels only
     ranked = sorted(scores.items(), key=lambda x: x[1], reverse=True)
@@ -418,9 +459,10 @@ def analyze(node: TreeNode) -> LlmSummary:
 
     all_files, all_dirs = _collect_all_names(node)
     all_names = all_files | all_dirs
+    all_paths = _collect_all_paths(node)
 
     # Weighted stack detection — sorted by score, not insertion order
-    summary.detected_stack = _detect_stack(all_names)
+    summary.detected_stack = _detect_stack(all_names, all_paths)
 
     # Notable flags
     seen_flags: set[str] = set()
