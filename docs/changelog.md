@@ -48,6 +48,23 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.2.1] — 2026-07-11
+
+### Fixed
+- `tree2guide <target>` (the default, file-writing mode — i.e. without
+  `--stdout`) crashed with `UnicodeEncodeError` on Windows terminals
+  using a non-UTF-8 codepage (e.g. `cp1252`), because the `✅ Tree
+  written to: ...` success message was printed without an explicit
+  encoding. The tree file itself was already written correctly at that
+  point, so the crash only obscured a successful run — but it returned
+  exit code 1 and dumped a traceback instead of the success message.
+  This is distinct from the `--stdout` `UnicodeEncodeError` fixed in
+  v1.0.0 (which only covered piped stdout, not the default file-writing
+  path). `main()` now reconfigures `sys.stdout`/`sys.stderr` to UTF-8 on
+  startup so this can't happen regardless of console codepage.
+
+---
+
 ## [1.2.0] — 2026-07-02
 
 ### Added

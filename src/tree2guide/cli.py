@@ -119,6 +119,13 @@ def _render(fmt: str, tree, title: str | None, include_footer: bool) -> str:
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Windows consoles often default to a non-UTF-8 codepage (e.g. cp1252),
+    # which raises UnicodeEncodeError on the emoji in the success message
+    # below even though the tree file itself was written correctly.
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
+
     parser = build_parser()
     args = parser.parse_args(argv)
 
