@@ -95,6 +95,9 @@ def build_node_tree(
             entry_is_dir = entry.is_dir() and not is_symlink
             excluded = is_excluded(entry, entry.is_dir())
 
+            if excluded:
+                continue
+
             child_nodes = recurse(entry, depth + 1) if entry_is_dir else []
 
             hide_for_type = (
@@ -102,9 +105,6 @@ def build_node_tree(
                 or (options.files_only and entry.is_dir() and not child_nodes)
             )
             if hide_for_type:
-                continue
-
-            if excluded and not (entry_is_dir and child_nodes):
                 continue
 
             symlink_target: str | None = None

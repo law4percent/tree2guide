@@ -126,4 +126,7 @@ Use the whitelist pattern:
 ```
 
 **A directory is still showing even though I excluded it**
-Check whether a negation rule (`!`) inside that directory is re-including something. `tree2guide` shows an excluded directory if a negated rule re-includes a descendant — exactly the same behaviour as Git.
+Check whether an unanchored `!pattern` elsewhere in the file happens to match a folder of the same name nested inside it (e.g. `!reports` also matches `build/reports`). Anchor the pattern with a leading `/` (`!/reports`) to restrict it to the root.
+
+**I excluded a directory, so why can't `!` bring back a file inside it?**
+Same as Git: once a directory is excluded, `tree2guide` never descends into it, so nothing inside can be re-included — not even with `!`. You must un-exclude every level of the path, e.g. `!node_modules`, `!node_modules/keep-me`, `!node_modules/keep-me/**`.

@@ -6,6 +6,23 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.2.2] — 2026-07-11
+
+### Fixed
+- `.tree2ignore` whitelist rules meant to re-include one top-level folder
+  (e.g. `!reports`, `!assets`) could unintentionally resurrect an unrelated
+  *excluded* directory elsewhere in the tree if any of its descendants
+  happened to share that folder's name (e.g. an excluded `build/` was
+  still shown because it contained `build/reports` and
+  `build/unit_test_assets/assets`). The scanner recursed into every
+  directory before checking exclusion, then kept an excluded parent
+  visible whenever a descendant survived — diverging from Git's actual
+  behavior, which never descends into an already-excluded directory.
+  `build_node_tree()` now skips excluded directories immediately,
+  matching Git.
+
+---
+
 ## [1.2.1] — 2026-07-11
 
 ### Fixed
