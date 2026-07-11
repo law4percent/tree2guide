@@ -26,7 +26,7 @@ from tree2guide.renderers.text import render_text
 from tree2guide.renderers.yaml_renderer import render_yaml
 from tree2guide.scanner import TreeNode, TreeOptions, build_node_tree, build_tree
 
-__version__ = "1.2.1"
+__version__ = "1.2.2"
 
 __all__ = [
     "__version__",
