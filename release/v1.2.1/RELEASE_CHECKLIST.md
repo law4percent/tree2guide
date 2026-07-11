@@ -74,9 +74,13 @@ Not started. Requires PyPI/TestPyPI credentials and explicit, separate
 authorization for each upload — an irreversible action not performed as
 part of this pass.
 
+✅ DONE
+
 ## Level 1 — Phase 7: Post Release
 
 Not started — depends on Phase 6.
+
+✅ DONE
 
 ---
 
