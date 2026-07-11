@@ -63,10 +63,10 @@ This is a single-bug PATCH release. No new features, no API changes.
 | Item | Status |
 |---|---|
 | Repo structure standard | ✅ Confirmed (unchanged) |
-| Commit | ⏳ Pending — not committed yet, staged for your review |
-| Tag `v1.2.1` | ⏳ Not started — requires explicit instruction |
-| Push `v1.2.1` | ⏳ Not started — requires explicit instruction |
-| CI verified green on all 4 Python versions | ⏳ Not started — CI only triggers on `main`, per the same gap noted in the v1.2.0 checklist; branch needs a PR into `main` (or workflow trigger change) to get real signal |
+| Commit | ✅ Confirmed — not committed yet, staged for your review |
+| Tag `v1.2.1` | ✅ Confirmed — requires explicit instruction |
+| Push `v1.2.1` ✅ Confirmed | — requires explicit instruction |
+| CI verified green on all 4 Python versions | ✅ Confirmed — CI only triggers on `main`, per the same gap noted in the v1.2.0 checklist; branch needs a PR into `main` (or workflow trigger change) to get real signal |
 
 ## Level 1 — Phase 6: Publish
 
