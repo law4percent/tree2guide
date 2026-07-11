@@ -8,3 +8,4 @@ src/tree2guide/renderers/__pycache__
 .venv-test
 dist
 .ignoredthis
+.DS_Store
